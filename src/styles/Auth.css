@@ -19,14 +19,30 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+}
+
+.link-button {
+  background: none;
+  border: none;
   color: var(--primary-blue);
-  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0;
 }
 
-.back-button:hover {
-  background: var(--light-blue);
+/* Simple toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--primary-blue);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.2);
+  z-index: 9999;
 }
-
 .auth-card {
   background: white;
   border-radius: 16px;

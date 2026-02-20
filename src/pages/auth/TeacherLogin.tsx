@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TeacherCalendarIcon } from '../../components/RoleIcons';
 import '../../styles/Auth.css';
-import { signIn } from '../../services/supabaseClient';
+import { signIn, signUp, supabase } from '../../services/supabaseClient';
 import { getUserProfileByIdentifier } from '../../services/supabaseClient';
 
 interface TeacherLoginProps {
@@ -15,6 +15,13 @@ const TeacherLogin: React.FC<TeacherLoginProps> = ({ onLogin, onBack }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regUsername, setRegUsername] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirm, setRegConfirm] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
 
   const TEACHER_CREDENTIALS = {
     username: 'teacher01',
@@ -55,13 +62,66 @@ const TeacherLogin: React.FC<TeacherLoginProps> = ({ onLogin, onBack }) => {
     })();
   };
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!regName || !regEmail || !regUsername || !regPassword) {
+      setError('Please fill all fields.');
+      return;
+    }
+    if (regPassword !== regConfirm) {
+      setError('Passwords do not match.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      // Create auth user via Supabase client signUp
+      const res = await signUp(regEmail, regPassword);
+      if (res.error) {
+        setError(res.error.message || 'Registration failed');
+        return;
+      }
+      const user = (res.data as any)?.user || (res as any)?.user || null;
+      const userId = user?.id || null;
+      // Insert profile into public.users (best-effort)
+      try {
+        const insertRes = await supabase.from('users').insert({ id: userId, email: regEmail, name: regName, username: regUsername, role: 'teacher' });
+        if (insertRes.error) {
+          // not fatal for signup, but surface error
+          console.warn('Profile insert failed', insertRes.error);
+        }
+      } catch (ie) {
+        console.warn('Profile insert exception', ie);
+      }
+
+      // Optionally auto-login user (attempt sign-in)
+      const login = await signIn(regEmail, regPassword);
+      if (!login.error) {
+        onLogin(regUsername, 'teacher');
+        return;
+      }
+
+      // If auto-login didn't work, show success toast and hide register form
+      setShowRegister(false);
+      setToastMessage('Registration successful — check your email if verification is required.');
+      setTimeout(() => setToastMessage(''), 6000);
+    } catch (e) {
+      console.error(e);
+      setError('Registration failed.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="auth-container">
       <button className="back-button" onClick={onBack}>← Back</button>
       <div className="auth-card">
         <div className="auth-icon"><TeacherCalendarIcon size={56} /></div>
         <h2>Teacher Login</h2>
-        <form onSubmit={handleSubmit}>
+        {!showRegister ? (
+          <>
+          <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
@@ -95,12 +155,55 @@ const TeacherLogin: React.FC<TeacherLoginProps> = ({ onLogin, onBack }) => {
             </div>
           </div>
 
-          {error && <div className="error-message">{error}</div>}
+            {error && <div className="error-message">{error}</div>}
 
-          <button type="submit" className="login-button" disabled={isLoading}>
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
+            <button type="submit" className="login-button" disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Login'}
+            </button>
+
+            <div className="auth-toggle">
+              <button type="button" className="link-button" onClick={() => { setShowRegister(true); setError(''); }}>
+                Register
+              </button>
+            </div>
+          </form>
+          {toastMessage && (
+            <div className="toast" role="status">{toastMessage}</div>
+          )}
+          </>
+        ) : (
+          <form onSubmit={handleRegister}>
+            <div className="form-group">
+              <label htmlFor="regName">Full name</label>
+              <input id="regName" type="text" value={regName} onChange={(e) => setRegName(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="regEmail">Email</label>
+              <input id="regEmail" type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="regUsername">Username</label>
+              <input id="regUsername" type="text" value={regUsername} onChange={(e) => setRegUsername(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="regPassword">Password</label>
+              <input id="regPassword" type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="regConfirm">Confirm password</label>
+              <input id="regConfirm" type="password" value={regConfirm} onChange={(e) => setRegConfirm(e.target.value)} required />
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <div className="auth-actions">
+              <button type="button" className="link-button" onClick={() => { setShowRegister(false); setError(''); }}>
+                Back to login
+              </button>
+              <button type="submit" className="login-button" disabled={isLoading}>{isLoading ? 'Registering...' : 'Register'}</button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

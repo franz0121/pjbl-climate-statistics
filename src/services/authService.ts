@@ -15,8 +15,21 @@ export const validateStudentCredentials = async (username: string, password: str
       if (res.error) return false;
       return !!res.data?.session;
     }
+
+    // If the user provided a username (not an email), look up the linked email
+    // in the `users` profile table and attempt Supabase sign-in with that email.
+    try {
+      const profile = await supabase.from('users').select('email').eq('username', username).maybeSingle();
+      if (!profile.error && profile.data?.email) {
+        const res = await signIn(profile.data.email, password);
+        if (!res.error && res.data?.session) return true;
+        return false;
+      }
+    } catch (e) {
+      // fall through to legacy/local fallback
+    }
   } catch (e) {
-    // fall through to legacy fallback
+    // fall through to legacy/local fallback
   }
 
   // Legacy fallback: try local storage / default map
