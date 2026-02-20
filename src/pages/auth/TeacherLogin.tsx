@@ -101,13 +101,18 @@ const TeacherLogin: React.FC<TeacherLoginProps> = ({ onLogin, onBack }) => {
       const userId = user?.id || null;
       // Insert profile into public.users (best-effort)
       try {
-        const insertRes = await supabase.from('users').insert({ id: userId, email: regEmail, name: regName, username: regUsername, role: 'teacher' });
+        const profilePayload: any = { email: regEmail, name: regName, username: regUsername, role: 'teacher' };
+        if (userId) profilePayload.id = userId;
+        const insertRes = await supabase.from('users').insert(profilePayload).select().maybeSingle();
         if (insertRes.error) {
-          // not fatal for signup, but surface error
+          setError(insertRes.error.message || 'Profile insert failed');
           console.warn('Profile insert failed', insertRes.error);
+          return;
         }
       } catch (ie) {
         console.warn('Profile insert exception', ie);
+        setError('Profile insert failed');
+        return;
       }
 
       // Optionally auto-login user (attempt sign-in)
