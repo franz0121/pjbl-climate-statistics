@@ -35,6 +35,7 @@ interface TeacherPortalProps {
 }
 
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ 
+  user,
   onLogout, 
   classes, 
   onCreateClass,
@@ -60,7 +61,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({
           </div>
         </div>
         <div className="header-right">
-          <p className="welcome-text">Welcome, <strong>Sir Christler</strong></p>
+          <p className="welcome-text">Welcome, <strong>{user?.username || 'Teacher'}</strong></p>
           <button className="logout-button" onClick={onLogout}>Logout</button>
         </div>
       </header>

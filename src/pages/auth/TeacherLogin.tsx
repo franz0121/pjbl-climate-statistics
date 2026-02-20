@@ -40,17 +40,33 @@ const TeacherLogin: React.FC<TeacherLoginProps> = ({ onLogin, onBack }) => {
           if (res.error) {
             setError('Invalid credentials. Please try again.');
           } else {
-            const profile = await getUserProfileByIdentifier(username);
-            const role = profile?.role === 'teacher' ? 'teacher' : 'teacher';
             onLogin(username, 'teacher');
           }
         } else {
-          // fallback to local static credentials for teachers
-          await new Promise(r => setTimeout(r, 500));
-          if (username === TEACHER_CREDENTIALS.username && password === TEACHER_CREDENTIALS.password) {
-            onLogin(username, 'teacher');
-          } else {
-            setError('Invalid credentials. Please try again.');
+          // Try to resolve username -> email in `users` profile table and sign in by email
+          try {
+            const profileRes = await supabase.from('users').select('email, username, role').eq('username', username).maybeSingle();
+            if (!profileRes.error && profileRes.data && profileRes.data.email) {
+              const email = profileRes.data.email;
+              const res = await signIn(email, password);
+              if (res.error) {
+                setError('Invalid credentials. Please try again.');
+              } else {
+                // use the registered username for UI
+                onLogin(profileRes.data.username || email, 'teacher');
+              }
+            } else {
+              // fallback to local static credentials for teachers
+              await new Promise(r => setTimeout(r, 500));
+              if (username === TEACHER_CREDENTIALS.username && password === TEACHER_CREDENTIALS.password) {
+                onLogin(username, 'teacher');
+              } else {
+                setError('Invalid credentials. Please try again.');
+              }
+            }
+          } catch (innerErr) {
+            console.error('Login lookup failed', innerErr);
+            setError('Login failed. Please try again.');
           }
         }
       } catch (e) {
