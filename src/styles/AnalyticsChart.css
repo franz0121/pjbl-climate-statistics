@@ -1,0 +1,95 @@
+.donut-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 20px;
+}
+
+.chart-container {
+  width: 200px;
+  height: 200px;
+  position: relative;
+}
+
+.donut-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.color-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bar-item {
+  display: grid;
+  grid-template-columns: 100px 1fr 50px;
+  gap: 15px;
+  align-items: center;
+}
+
+.bar-label {
+  font-weight: 500;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+}
+
+.bar-container {
+  height: 30px;
+  background: #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.4s ease;
+}
+
+.bar-value {
+  text-align: right;
+  font-weight: 600;
+  color: var(--primary-blue);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .bar-item {
+    grid-template-columns: 80px 1fr 45px;
+    gap: 10px;
+  }
+
+  .chart-container {
+    width: 150px;
+    height: 150px;
+  }
+}

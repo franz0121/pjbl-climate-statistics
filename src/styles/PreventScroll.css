@@ -1,0 +1,4 @@
+/* Prevent parent page from jumping when embedded content updates */
+.prevent-scroll-jump {
+  overflow-anchor: none;
+}

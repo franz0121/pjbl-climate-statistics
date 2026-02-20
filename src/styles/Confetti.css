@@ -1,0 +1,4 @@
+.confetti-overlay{position:fixed;inset:0;pointer-events:none;z-index:9999;}
+.confetti-piece{position:absolute;top:-10px;border-radius:2px;opacity:.9;animation:confettiFall linear forwards;}
+@keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);}100%{transform:translateY(100vh) rotate(360deg);opacity:0}}
+.confetti-message{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#ffffff;box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid #e6eef9;border-radius:12px;padding:10px 16px;color:#2C4795;font-weight:600}
